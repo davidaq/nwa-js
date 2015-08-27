@@ -37,6 +37,7 @@ require('../lib/common/load-config');
 
 //=== try to load specified command
 try {
+    require('../lib/common/json-strip-null');
     require('../lib/command-' + argv._[0])(argv);
 } catch(e) {
     console.warn("Error: command not suported.");
