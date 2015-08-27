@@ -1,0 +1,15 @@
+<service baseurl="<%-data.baseurl%>">
+	<types>		<%for(var key in data.types) { var value = data.types[key];%>
+		<type name="<%-key%>" comment="<%-value.__comment%>">
+			<%for(var key2 in value.fields) { var value2 = value.fields[key2];%><field name="<%-key2%>" type="<%-value2.type%>" comment="<%-value2.__comment%>"/>
+			<%}%>
+		</type>	<%}%>
+	</types>
+	<actions>	<%for(var key in data.actions) { var value = data.actions[key]%>
+		<group name="<%-key%>" comment="<%-value.__comment%>"> <%for (var key2 in value) { var value2 = value[key2];%>
+			<action name="<%-key2%>" path="<%-key%>/<%-key2%>" return="<%-value2.result%>" comment="<%-value2.__comment%>" cache="<%-value2.cache%>"><%for (var key3 in value2.param) { var value3 = value2.param[key3];%>
+				<parameter name="<%-key3%>" type="<%-value3.type%>" comment="<%-value3.__comment%>"/><%}%>
+			</action> <%}%>
+		</group> <%}%>
+	</actions>
+</service>
