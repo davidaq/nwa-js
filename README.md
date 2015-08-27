@@ -1,14 +1,17 @@
 nwa-js
 ======
 
-A framework for JSON based web api along with client code generation.
+Framework for createing JSON based web services and realtime web apps runing on [nodejs](http://nodejs.org).
 
-This framework runs on top of express, and aims to provide software 
-devlopers an easy way to declare and create json based web services.
+Featrues
+-------
 
-This framework also provides client code generation for the following platforms:
+ - Declare service protocol and beans with [YAML](http://www.yaml.org) or [JSON](http://www.json.org)
+ - Generate server side code with according to service declarations
+ - Generate easy to use client side apis for: Android, iOS, plain Java, JavaScript with jQuery
+ - Service testing tool runing on browser
+ - View and template based web app compilation
 
-    - Android
-    - iOS
-    - plain Java
-    - JavaScript with jQuery
+Usage
+-----
+

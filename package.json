@@ -1,6 +1,6 @@
 {
   "name": "nwa-js",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A framework for JSON based web api along with client code generation.",
   "main": "index.js",
   "scripts": {
@@ -11,5 +11,6 @@
     "service"
   ],
   "author": "DavidAQ",
-  "license": "ISC"
+  "license": "MIT",
+  "repository": "https://github.com/davidaq/nwa-js"
 }
