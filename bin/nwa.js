@@ -9,8 +9,6 @@ var argv = require('yargs').usage("Usage: $0 <command> [options]")
     .command("poll",  "Issue build every second. Use when watch is not supported")
     .demand(1, "must provide a valid command")
     .help("help").alias("help", "h")
-    .describe("port", "Http server listen port").alias("port", "p")
-    .default("port", 3000)
     .describe("dir",  "Base directory of the nwa project").alias("dir", "d")
     .argv;
 

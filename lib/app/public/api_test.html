@@ -1,0 +1,478 @@
+<!doctype html>
+<html class="no-js" lang="ch">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>api</title>
+<style type="text/css">
+* {
+	padding: 0;
+	margin: 0;
+}
+
+.hidearea {
+	position: fixed;
+	bottom: 200%;
+	left: 0;
+	right: 0;
+}
+
+input, textarea {
+	outline: none;
+}
+
+p {
+	margin: 16px 0;
+}
+
+a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.the-href {
+	float: left;
+	margin-top: -60px;
+}
+
+h1 {
+	display: inline-block;
+	font-size: 1.5em;
+}
+
+h2 {
+	display: inline-block;
+	font-size: 1.4em;
+}
+
+h3 {
+	display: inline-block;
+	font-size: 1.3em;
+}
+
+body {
+	background: #F2F2F2;
+}
+
+.btn {
+	padding: 5px 20px;
+	background: #8892BF;
+	color: #FFF;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.contents {
+	padding: 10px;
+	color: #333;
+}
+
+.contents .text {
+	background: #FFF;
+	color: #333;
+	padding: 10px;
+}
+
+.contents .text .text-table td {
+	padding: 10px 5px;
+}
+
+.contents .title {
+	margin-top: 10px;
+	padding: 10px;
+}
+
+.contents span.type {
+	color: #309465;
+}
+
+.contents span.comment {
+	color: #369;
+}
+
+textarea.parameter.error {
+	box-shadow: 0px 0px 5px 1px #FF3333;
+	border-color: #FF3333;
+}
+
+input.micro {
+	width: 50px;
+}
+
+.multiResultTable td {
+	padding: 0 5px;
+}
+</style>
+<script src="js/underscore-min.js"></script>
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/jquery.cookie.js"></script>
+<script src="js/jquery.md5.js"></script>
+<script src="js/formatJson.js"></script>
+</head>
+<body>
+	<div class="hidearea">
+		<script id="actionTemplate" type="text/template">
+		<%for (var key in data.actions) { var value = data.actions[key];%>
+		<h1 class="toggle"><%=key%></h1>
+		<span class="toggle-flag">-</span>
+		<p><%=value.__comment%></p>
+		<div class="action-body" cookieid="actionbody<%=key%>">
+			<%var allkey2 = _.keys(value).sort(); for (var index in allkey2) {
+			var key2 = allkey2[index]; var value2 = value[key2];%>
+			<div class="function">
+				<div class="title">
+					<h2><%=key2%></h2>
+					<%if(value2.cache){%>&nbsp;&nbsp;&nbsp;&nbsp;可缓存<%}%>
+				</div>
+				<div class="text">
+					<p>
+						<span class="comment"><%=value2.__comment%></span>
+					</p>
+					<table class="text-table">
+						<%for (var key3 in value2.param) { var value3 =
+						value2.param[key3];%> <% var aType = null;
+						if(value3.type.slice(-2)=="[]") { aType =
+						value3.type.slice(0,-2);}else{aType = value3.type;}%>
+						<tr>
+							<td><span class="type"> <%=value3.type%> </span></td>
+							<td><%=key3%></td>
+							<td><%if(testBasicType[value3.type]==1) {%><input
+								type="text" class="parameter" paramid="<%=key3%>"
+								cookieid="<%=key%><%=key2%><%=key3%>" /><%} else {%> <textarea
+									class="parameter" paramid="<%=key3%>"
+									cookieid="<%=key%><%=key2%><%=key3%>" rows="10" cols="20"></textarea>
+								<%}%>
+							</td>
+						</tr>
+						<%}%>
+					</table>
+					<p>
+						<%var transObj = {}; transObj.actions = {}; transObj.actions[key]
+						= {}; transObj.actions[key][key2] = value2; transObj.baseurl =
+						data.baseurl;%> Result type <span class="type">
+              <%=value2.result%> </span>
+            <br/><br/>
+            <a class="btn" onclick="postRequire.apply(this)">Fire</a> 
+            <input type="text" class="test-time micro" value="1" /> times
+					</p>
+					<p>Pressure test
+					<table>
+						<tr>
+							<td>Threads: </td>
+							<td><input type="text" cookieid="concurrent-num" class="concurrent-num micro parameter" value="10" />
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>Total time(s):</td>
+							<td><input type="text" cookieid="duration" class="duration micro parameter" value="30" />
+							</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>Interval(s):</td>
+							<td><input type="text" cookieid="interval" class="interval micro parameter" value="2" />
+							</td>
+							<td>&nbsp;<a class="btn" onclick="multiPost.apply(this)">begin</a>
+							</td>
+						</tr>
+					</table>
+					</p>
+				</div>
+			</div>
+			<%}%>
+		</div>
+		<%}%>
+		</script>
+		<script id="multiResultTemplate" type="text/template">
+		<table class="multiResultTable">
+			<thead>
+				<tr>
+					<td>Round</td>
+					<td>Total time</td>
+					<td>Times</td>
+					<td>Avg. time</td>
+				</tr>
+			</thead>
+			<tbody>
+				<% var total = [0,0,0];%> <%for(var key in data){ var all = 0; for(var
+				key2 in data[key]){ all += data[key][key2] * 1; } total[0] += all*1;
+				total[1] += key2*1+1; total[2] = total[0]/total[1]; %>
+				<tr>
+					<td><%=key%></td>
+					<td><%=all%></td>
+					<td><%=(key2*1+1)%></td>
+					<td><%=(all/(key2*1+1))%></td>
+				</tr>
+				<%}%>
+				<tr>
+					<td>Sum</td>
+					<td><%=total[0]%></td>
+					<td><%=total[1]%></td>
+					<td><%=total[2]%></td>
+				</tr>
+			</tbody>
+		</table>
+		</script>
+	</div>
+	<div class="contents"></div>
+	<pre>
+	<div class="result"></div>
+	</pre>
+</body>
+
+<script type="text/javascript">
+	String.prototype.startsWith = String.prototype.startsWith || function(str) {
+		var reg = new RegExp("^" + str);
+		return reg.test(this);
+	}
+
+	String.prototype.endsWith = String.prototype.endsWith || function(str) {
+		var reg = new RegExp(str + "$");
+		return reg.test(this);
+	}
+
+	window.getParamFromUrl = function(url) {
+		if (url.slice(0, 1) == "#") {
+			url = url.slice(1);
+		}
+		var search = (url.split("#", 1)[0]).split("?", 2)[1];
+		var paraString = [];
+		if (search && search.length > 0)
+			paraString = search.split("&");
+		var UrlParams = {};
+		for ( var key in paraString) {
+			var temp = paraString[key].split("=");
+			UrlParams[temp[0]] = temp[1];
+		}
+		return UrlParams;
+	}
+	var testBasicType = {
+		"Integer" : 1,
+		"String" : 1,
+		"Long" : 1,
+		"Float" : 1,
+		"Double" : 1,
+		"Boolean" : 1,
+		"Integer[]" : 2,
+		"String[]" : 2,
+		"Long[]" : 2,
+		"Float[]" : 2,
+		"Double[]" : 2,
+		"Boolean[]" : 2
+	}
+
+	var actionTemplate = _.template($("#actionTemplate").html());
+	function initData() {
+		console.log(theJson);
+		$(".contents").html(actionTemplate({
+			data : theJson
+		}))
+		initCookieData();
+	}
+	function initCookieData() {
+		var actionBody = $(".contents .parameter");
+		actionBody.each(function() {
+			var cookieid = $(this).attr("cookieid");
+			var value = $.cookie(cookieid);
+			value && $(this).val(value);
+		});
+	}
+
+	var theJson;
+	var param = getParamFromUrl(window.location.href);
+	if (param && param.jsonobj) {
+		var temp = decodeURIComponent(param.jsonobj);
+		theJson = JSON.parse(temp);
+	}
+	if (theJson) {
+		initData();
+	}
+
+	var resultBody = $(".result");
+	var resultList = [];
+	function postRequire() {
+		var count = 1;
+		var excuteTime = $(this).closest(".function").find(".test-time").val() * 1;
+		console.log(excuteTime);
+		var param2Input;
+		if (this != window) {
+			param2Input = $(this).closest(".function").find(".parameter");
+		} else {
+			param2Input = $(".parameter");
+		}
+		var param2 = {};
+		param2Input.each(function() {
+			if (this.tagName == "TEXTAREA") {
+				param2[$(this).attr("paramid")] = JSON.parse($(this).val());
+			} else {
+				param2[$(this).attr("paramid")] = $(this).val();
+			}
+		})
+		param2.checktype = "1";
+		var actionsName = _.keys(theJson.actions)[0];
+		var actionName = _.keys(theJson.actions[actionsName])[0];
+
+		var actionUrl = "/service/" + actionsName + "/" + actionName;
+		console.log(actionUrl);
+		function postMether() {
+			$
+					.ajax({
+						url : actionUrl,
+						data : param2,
+						method : 'post',
+						dataType : 'json',
+						timeout : 30000,
+						error : function(data) {
+							alert('Error');
+							console.log(data);
+						},
+						success : function(data) {
+							console.log(data);
+							var checktype = data.checktype;
+							delete data.checktype;
+							data = JSON.stringify(data, null, 2);
+							var html = "-------------count = " + (count)
+									+ "-------------\n";
+							html += data + "\n";
+							if (checktype) {
+								html += "\n-----checktype---\n" + checktype
+										+ "\n";
+							}
+							resultList.unshift(html);
+							if (resultList.length > 200) {
+								resultList = resultList.slice(0, 200);
+							}
+							resultBody.html(resultList.join(""));
+							if (count < excuteTime) {
+								postMether();
+							} else {
+								resultBody
+										.prepend("<div>\n-------------over-------------\n</div>");
+							}
+							count++;
+						}
+					});
+		}
+		postMether();
+	}
+
+	var multiResultTemplate = _.template($("#multiResultTemplate").html());
+	function multiPost() {
+		var theParentNode = $(this).closest(".function");
+		var concurrentNum = theParentNode.find(".concurrent-num").val() * 1;
+		var duration = theParentNode.find(".duration").val() * 1000;
+		var interval = theParentNode.find(".interval").val() * 1000;
+		resultBody.html("Starting");
+
+		var param2Input;
+		if (this != window) {
+			param2Input = $(this).closest(".function").find(".parameter");
+		} else {
+			param2Input = $(".parameter");
+		}
+		var param2 = {};
+		param2Input.each(function() {
+			if (this.tagName == "TEXTAREA") {
+				param2[$(this).attr("paramid")] = JSON.parse($(this).val());
+			} else {
+				param2[$(this).attr("paramid")] = $(this).val();
+			}
+		})
+		//param2.checktype = "1";
+		var actionsName = _.keys(theJson.actions)[0];
+		var actionName = _.keys(theJson.actions[actionsName])[0];
+
+		var actionUrl = "/service/" + actionsName + "/" + actionName;
+
+		var resultsList = [];
+		var runCount = 0;
+		var isEnd = false;
+		function postMether(callback) {
+			var startTime = new Date().getTime();
+			$.ajax({
+				url : actionUrl,
+				data : param2,
+				method : 'post',
+				dataType : 'json',
+				timeout : 30000,
+				error : function(data) {
+					console.log(data);
+					clearInterval(intKey);
+					!isEnd && alert("error");
+					isEnd = true;
+				},
+				success : function(data) {
+					var nowTime = new Date().getTime() - startTime;
+					callback && callback(nowTime);
+				}
+			});
+		}
+
+		function loopPost() {
+			function loopInner(runCount) {
+				resultsList[runCount] = [];
+				var callbackCount = 0;
+				for (var key = 0; key < concurrentNum; key++) {
+					postMether(function(time) {
+						resultsList[runCount][callbackCount] = time;
+						resultBody.html(multiResultTemplate({
+							data : resultsList
+						}));
+						callbackCount++;
+					});
+				}
+			}
+			loopInner(runCount);
+			runCount++;
+		}
+		var intKey = setInterval(loopPost, interval);
+    loopPost();
+		setTimeout(function() {
+			clearInterval(intKey);
+			resultBody.append("\n--------- Finish ----------\n");
+		}, duration);
+	}
+
+	$("body").on('blur', 'textarea.parameter', function() {
+		var jsonStr = $(this).val();
+		try {
+			var jsonObj = eval("(" + jsonStr + ")");
+			var value = JSON.stringify(jsonObj, null, 4);
+			$(this).val(value);
+			$(this).keyup();
+			$(this).removeClass("error");
+		} catch (e) {
+			$(this).addClass("error");
+		}
+	});
+
+	var parameterKeyUpEvent = null;
+	$("body").on('keyup', '.parameter', function() {
+		var theThis = this;
+		function flashKeyUp() {
+			var cookieid = $(theThis).attr("cookieid");
+			var value = $(theThis).val();
+			$.cookie(cookieid, value, {
+				expires : 365
+			});
+		}
+		if (parameterKeyUpEvent) {
+			clearTimeout(parameterKeyUpEvent);
+		}
+		parameterKeyUpEvent = setTimeout(flashKeyUp, 500);
+	})
+
+	$("body").on('blur', '.parameter', function() {
+		var theThis = this;
+		var cookieid = $(theThis).attr("cookieid");
+		var value = $(theThis).val();
+		$.cookie(cookieid, value, {
+			expires : 365
+		});
+	})
+</script>
+</html>

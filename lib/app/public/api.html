@@ -1,0 +1,314 @@
+<!doctype html>
+<html class="no-js" lang="ch">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>api</title>
+<style type="text/css">
+* {
+	padding: 0;
+	margin: 0;
+}
+
+p {
+	margin: 16px 0;
+}
+
+a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.the-href {
+	float: left;
+	margin-top: -60px;
+}
+
+input, textarea {
+	outline: none;
+}
+
+h1 {
+	display: inline-block;
+	font-size: 1.5em;
+}
+
+h2 {
+	display: inline-block;
+	font-size: 1.4em;
+}
+
+h3 {
+	display: inline-block;
+	font-size: 1.3em;
+}
+
+body {
+	background: #333333;
+	margin-top: 48px;
+	color: #FFF;
+}
+
+.btn {
+	padding: 5px 20px;
+	background: #8892BF;
+	color: #FFF;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.navbar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 48px;
+	background: #4F5B93;
+}
+
+.navbar .navbar-body {
+	height: 45px;
+	background: #8892BF;
+}
+
+.body {
+	background: #F2F2F2;
+	color: #333;
+}
+
+.hidearea {
+	position: fixed;
+	bottom: 200%;
+	left: 0;
+	right: 0;
+}
+
+.contents {
+	padding: 10px;
+	color: #333;
+}
+
+.contents .text {
+	background: #FFF;
+	color: #333;
+	padding: 10px;
+}
+
+.contents .text .text-table td {
+	padding: 10px 5px;
+}
+
+.contents .title {
+	margin-top: 10px;
+	padding: 10px;
+}
+
+.contents span.type {
+	color: #309465;
+}
+
+.contents span.comment {
+	color: #369;
+}
+
+.toggle {
+	cursor: pointer;
+}
+</style>
+<script src="js/underscore-min.js"></script>
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/jquery.cookie.js"></script>
+<script src="js/jquery.md5.js"></script>
+<script src="js/formatJson.js"></script>
+
+<script type="text/javascript">
+	var basicTypeList = {
+		"Integer" : 1,
+		"String" : 1,
+		"Long" : 1,
+		"Float" : 1,
+		"Double" : 1,
+		"Boolean" : 1,
+		"Integer[]" : 1,
+		"String[]" : 1,
+		"Long[]" : 1,
+		"Float[]" : 1,
+		"Double[]" : 1,
+		"Boolean[]" : 1
+	}
+	$(function() {
+		var functionsTemplate = _.template($("#functionsTemplate").html());
+		$.ajax({
+			url : 'api.json',
+			type : 'GET',
+			dataType : 'json',
+			timeout : 5000,
+			error : function(json) {
+				alert('Error loading json document' + json);
+			},
+			success : initData
+		});
+
+		function initData(json) {
+			console.log(json);
+			var html = functionsTemplate({
+				data : json
+			})
+			$(".contents").html(html);
+			initCookieData();
+		}
+		function initCookieData() {
+			var actionBody = $(".contents .action-body");
+			actionBody.each(function() {
+				var cookieid = $(this).attr("cookieid");
+				var toggleFlag = $($(this).prevAll(".toggle-flag")[0]);
+				var value = $.cookie(cookieid) * 1;
+				if (value) {
+					$(this).show();
+					toggleFlag.html("-");
+				} else {
+					$(this).hide();
+					toggleFlag.html("+");
+				}
+			});
+
+			var scrolltop = $.cookie("scrollTop");
+			if (scrolltop) {
+				$(document).scrollTop(scrolltop);
+			}
+		}
+		$(".contents").on("click", "h1.toggle", function() {
+			var actionBody = $($(this).nextAll(".action-body")[0]);
+			var cookieid = actionBody.attr("cookieid");
+			actionBody.toggle();
+			if (actionBody.is(":visible")) {
+				$($(this).nextAll(".toggle-flag")[0]).html("-");
+				$.cookie(cookieid, 1, {
+					expires : 365
+				});
+			} else {
+				$($(this).nextAll(".toggle-flag")[0]).html("+");
+				$.cookie(cookieid, 0, {
+					expires : 365
+				});
+			}
+
+		})
+
+		function flashScrollTop() {
+			$.cookie("scrollTop", $(document).scrollTop(), {
+				expires : 365
+			});
+		}
+		var scrollTimeoutEvent = null;
+		$(window).scroll(function() {
+			if (scrollTimeoutEvent) {
+				clearTimeout(scrollTimeoutEvent);
+			}
+			scrollTimeoutEvent = setTimeout(flashScrollTop, 500);
+		});
+	});
+	function openNewWindow(windowTitle) {
+		var json = $(this).attr("data");
+		var openWindow = window.open("api_test.html?jsonobj=" + json,
+				windowTitle);
+
+	}
+</script>
+</head>
+<body>
+	<div class="hidearea">
+		<script id="functionsTemplate" type="text/template">
+		<%for (var key in data.actions) { var value = data.actions[key];%>
+		<h1 class="toggle"><%=key%></h1>
+		<span class="toggle-flag">-</span>
+		<p><%=value.__comment%></p>
+		<div class="action-body" cookieid="actionbody<%=key%>">
+			<%var allkey2 = _.keys(value).sort(); for (var index in allkey2) {
+			var key2 = allkey2[index]; var value2 = value[key2];%>
+			<div class="function">
+				<div class="title">
+					<h2><%=key2%></h2>
+					<%if(value2.cache){%>&nbsp;&nbsp;&nbsp;&nbsp;cached<%}%>
+				</div>
+				<div class="text">
+					<p>
+						<span class="comment"><%=value2.__comment%></span>
+					</p>
+					<table class="text-table">
+						<%for (var key3 in value2.param) { var value3 =
+						value2.param[key3];%> <% var aType = null;
+						if(value3.type.slice(-2)=="[]") { aType =
+						value3.type.slice(0,-2);}else{aType = value3.type;}%>
+						<tr>
+							<td><span class="type">
+									<%if(!basicTypeList[value3.type]) {%><a href="#<%=aType%>"><%=value3.type%></a><%}else
+									{%> <%=value3.type%> <%}%>
+							</span></td>
+							<td><%=key3%></td>
+							<td><span class="comment"><%=value3.__comment%></span></td>
+						</tr>
+						<%}%>
+					</table>
+					<% var aResult = null; if(value2.result.slice(-2)=="[]") { aResult
+					= value2.result.slice(0,-2);}else if(!basicTypeList[value2.result])
+					{aResult = value2.result;}%>
+					<p>
+						Result type<span class="type">
+						<%var transObj = {}; transObj.actions = {}; transObj.actions[key] = {}; transObj.actions[key][key2] = value2; transObj.baseurl = data.baseurl;%>
+							<%if(!basicTypeList[value2.result]) {%><a href="#<%=aResult%>"><%=value2.result%></a><%}else{%><%=value2.result%><%}%>
+            </span>
+            <br/><br/>
+            <a class="btn" data="<%-encodeURIComponent(JSON.stringify(transObj))%>"
+							onclick="openNewWindow.apply(this,['<%print(key+key2)%>'])">Test</a>
+					</p>
+				</div>
+			</div>
+			<%}%>
+		</div>
+		<%}%>
+		<p>&nbsp;</p>
+		<h1 style="color:#AAA">Composed Types</h1>
+		<%for (var key in data.types) { var value = data.types[key];%> <a
+			class="the-href" name="<%=key%>">&nbsp;</a>
+		<p></p>
+		<h1><%=key%></h1>
+		<p><%=value.__conmment%></p>
+		<div class="function">
+			<div class="text">
+				<table class="text-table">
+					<%var allkey2 = _.keys(value.fields).sort(); for (var index in
+					allkey2) { var key2 = allkey2[index]; var value2 =
+					value.fields[key2];%> <% var aType = null;
+					if(value2.type&&value2.type.slice(-2)=="[]") { aType =
+					value2.type.slice(0,-2);}else{aType = value2.type;}%>
+					<tr>
+						<td><%if(!basicTypeList[value2.type]) {%><a
+							href="#<%=aType%>"><span class="type"><%=value2.type%></span></a><%}else{%><span
+							class="type"><%=value2.type%></span><%}%>
+						</td>
+						<td><%=key2%></td>
+						<td><span class="comment"><%=value2.__comment%></span></td>
+					</tr>
+					<%}%>
+				</table>
+			</div>
+		</div>
+		<%}%>
+		</script>
+	</div>
+	<div class="navbar">
+		<div class="navbar-body">
+			<div class="head"></div>
+		</div>
+	</div>
+	<div class="body">
+		<h1></h1>
+		<div class="contents"></div>
+	</div>
+	<pre id="print"></pre>
+</body>
+</html>
