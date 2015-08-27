@@ -1,7 +1,7 @@
 {
   "name": "nwa-js",
   "version": "1.0.0",
-  "description": "An framework aiming to provide easy JSON based web api along with client code generation.",
+  "description": "A framework for JSON based web api along with client code generation.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
