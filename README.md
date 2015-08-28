@@ -17,17 +17,22 @@ Features
 Usage
 -----
 
+This package is not used as an included module. It's a command line software.
+
     Usage: nwa <command> [options]
 
     Commands:
-      init   Create a bootstrap nwa project
-      start  Start running the http server
-      stop   Terminate the http server if running
-      build  Front-end apps and service implementations will be updated
-      watch  Issue build when detected change. May not work on some os
-      poll   Issue build every second. Use when watch is not supported
+      init     Create a bootstrap nwa project
+      run      Start running the http server
+      start    Start http server as daemon
+      stop     Terminate running daemon http server
+      restart  Terminate running daemon http server and start a new one
+      build    Front-end apps and service implementations will be updated
+      watch    Issue build when detected change. May not work on some os
+      poll     Issue build every second. Use when watch is not supported
 
     Options:
-      --help, -h  Show help
-      --dir, -d   Base directory of the nwa project. Current working directory by default
+      --help, -h  Show help                                                [boolean]
+      --dir, -d   Base directory of the nwa project. Current working directory by
+                  default
 
