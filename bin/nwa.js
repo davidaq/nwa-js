@@ -2,14 +2,16 @@
 
 var argv = require('yargs').usage("Usage: $0 <command> [options]")
     .command("init",  "Create a bootstrap nwa project")
-    .command("start", "Start running the http server")
-    .command("stop",  "Terminate the http server if running")
+    .command("run",   "Start running the http server")
+    .command("start", "Start http server as daemon")
+    .command("stop",  "Terminate running daemon http server")
+    .command("restart",  "Terminate running daemon http server and start a new one")
     .command("build", "Front-end apps and service implementations will be updated")
     .command("watch", "Issue build when detected change. May not work on some os")
     .command("poll",  "Issue build every second. Use when watch is not supported")
     .demand(1, "must provide a valid command")
     .help("help").alias("help", "h")
-    .describe("dir",  "Base directory of the nwa project").alias("dir", "d")
+    .describe("dir",  "Base directory of the nwa project. Current working directory by default").alias("dir", "d")
     .argv;
 
 
