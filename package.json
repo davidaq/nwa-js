@@ -15,6 +15,7 @@
   "repository": "https://github.com/davidaq/nwa-js",
   "dependencies": {
     "body-parser": "^1.13.3",
+    "chokidar": "^1.4.2",
     "concat-stream": "^1.5.0",
     "esprima": "^2.6.0",
     "express": "^4.13.3",
@@ -24,7 +25,6 @@
     "morgan": "^1.6.1",
     "uglify-js": "^2.4.24",
     "underscore": "^1.8.3",
-    "walkdir": "0.0.10",
     "yamljs": "^0.2.3",
     "yargs": "^3.21.0"
   },
