@@ -1,14 +1,12 @@
 #!/usr/bin/env node
 
 var argv = require('yargs').usage("Usage: $0 <command> [options]")
-    .command("init",  "Create a bootstrap nwa project")
-    .command("run",   "Start running the http server")
+    .command("init",  "Create a nwa project boiler plate")
     .command("start", "Start http server as daemon")
     .command("stop",  "Terminate running daemon http server")
     .command("restart",  "Terminate running daemon http server and start a new one")
-    .command("build", "Front-end apps and service implementations will be updated")
-    .command("watch", "Issue build when detected change. May not work on some os")
-    .command("poll",  "Issue build every second. Use when watch is not supported")
+    .command("run",   "Start running the http server")
+    .command("dev", "Start running development server, project will be auto updated")
     .demand(1, "must provide a valid command")
     .help("help").alias("help", "h")
     .describe("dir",  "Base directory of the nwa project. Current working directory by default").alias("dir", "d")
@@ -19,17 +17,22 @@ var argv = require('yargs').usage("Usage: $0 <command> [options]")
 var path = require('path');
 var fs = require('fs');
 
-var basedir = argv.dir || process.cwd();
-for(var i = 0; i < 10; i++) {
-    if(fs.existsSync(path.join(basedir, 'package.json'))) {
-        break;
-    } else {
-        basedir = path.join(basedir, '..');
+var command = argv._[0];
+
+var cwd =  argv.dir || process.cwd();
+var basedir = cwd;
+if (command != 'init') {
+    for(var i = 0; i < 10; i++) {
+        if(fs.existsSync(path.join(basedir, 'package.json'))) {
+            break;
+        } else {
+            basedir = path.join(basedir, '..');
+        }
     }
 }
 basedir = path.resolve(basedir);
 if(!basedir || basedir == '/') {
-    basedir = path.resolve(argv.dir || process.cwd());
+    basedir = path.resolve(cwd);
 }
 process.chdir(basedir);
 GLOBAL.BASE = basedir;
@@ -40,7 +43,7 @@ require('../lib/common/load-config');
 //=== try to load specified command
 try {
     require('../lib/common/json-strip-null');
-    require('../lib/command-' + argv._[0])(argv);
+    require('../lib/command-' + command)(argv);
 } catch(e) {
     console.warn("Error: command not suported.");
     throw e;
