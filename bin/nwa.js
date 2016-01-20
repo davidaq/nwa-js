@@ -41,10 +41,11 @@ GLOBAL.BASE = basedir;
 require('../lib/common/load-config');
 
 //=== try to load specified command
+require('../lib/common/json-strip-null');
 try {
-    require('../lib/common/json-strip-null');
-    require('../lib/command-' + command)(argv);
+    require.resolve('../lib/command-' + command);
 } catch(e) {
     console.warn("Error: command not suported.");
     throw e;
 }
+require('../lib/command-' + command)(argv);
